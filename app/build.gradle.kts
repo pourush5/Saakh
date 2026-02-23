@@ -57,6 +57,10 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("com.google.dagger:hilt-android:2.51.1")
     ksp("com.google.dagger:hilt-compiler:2.51.1")
+    // Navigation for Compose
+    implementation("androidx.navigation:navigation-compose:2.8.7")
+    // Hilt integration for Compose Navigation
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
