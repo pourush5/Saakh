@@ -1,6 +1,7 @@
 package com.pourush.saakh.di
 import android.content.Context
 import androidx.room.Room
+import com.pourush.saakh.core.crypto.SaakhCryptoManager
 import com.pourush.saakh.core.database.SaakhDatabase
 import com.pourush.saakh.core.database.WorkDao
 import dagger.Module
@@ -30,5 +31,11 @@ object AppModule {
     @Singleton
     fun provideWorkDao(database: SaakhDatabase): WorkDao {
         return database.workDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCryptoManager(): SaakhCryptoManager {
+        return SaakhCryptoManager()
     }
 }
