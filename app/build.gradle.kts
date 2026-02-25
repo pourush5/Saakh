@@ -62,6 +62,8 @@ dependencies {
     // Hilt integration for Compose Navigation
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
+    implementation("com.google.zxing:core:3.5.3")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
