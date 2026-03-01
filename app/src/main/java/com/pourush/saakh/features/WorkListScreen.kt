@@ -1,5 +1,6 @@
 package com.pourush.saakh.features
 
+import android.content.Intent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,7 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.pourush.saakh.core.utils.LedgerExporter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +26,8 @@ fun WorkListScreen(
     onEntryClick: (String) -> Unit,
     onScanClick: () -> Unit
 ) {
+
+    val context = LocalContext.current
     val entries by viewModel.workEntries.collectAsState()
     val tofuState by viewModel.showTofuDialog.collectAsState()
 
@@ -61,10 +66,24 @@ fun WorkListScreen(
         )
     }
 
-    // --- YOUR MAIN UI ---
     Scaffold(
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
+                FloatingActionButton(
+                    onClick = {
+                        val ledgerText = LedgerExporter.generateShareableText(entries)
+                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, ledgerText)
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, "Share Ledger via...")
+                        context.startActivity(shareIntent)
+                    }
+                ) {
+                    Text("📤") // Export/Share Icon
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
                 FloatingActionButton(onClick = onScanClick) {
                     Text("📷")
                 }
