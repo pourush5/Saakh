@@ -21,6 +21,7 @@ data class WorkEntry(
     // The Crypto Proof (The "Handshake")
     val isVerified: Boolean = false, //Turns GREEN if true
     val contractorPublicKey: String? = null, //Who verified it?
+    val contractorName: String? = null, //Name of contractor
     val digitalSignature: String? = null, //The math proof
     val verifiedAt: Long? = null //When was it verified?
 )
