@@ -15,7 +15,7 @@ import javax.inject.Inject
 // State class to handle UI loading/success/error cleanly
 sealed class QrState {
     object Loading : QrState()
-    data class Success(val payload: String, val signature: String) : QrState()
+    data class Success(val payload: String, val signature: String, val publicKey: String) : QrState() // ADDED PUBLIC KEY
     data class Error(val message: String) : QrState()
 }
 
@@ -41,16 +41,15 @@ class HandshakeViewModel @Inject constructor(
 
     private fun generateHandshakeData(entryId: String) {
         viewModelScope.launch {
-            val entry = repository.getWorkEntry(entryId) // Need to make sure this exists in your Repository!
+            val entry = repository.getWorkEntry(entryId)
             if (entry != null) {
-                // 1. Create a minimal payload. (Smaller string = Less dense QR code)
                 val payload = "${entry.date},${entry.hoursWorked},${entry.wageRate}"
-
-                // 2. Sign it using the hardware keystore
                 val signature = cryptoManager.signData(payload)
+                val publicKey = cryptoManager.getMyPublicKey() // GRAB THE KEY
 
                 if (signature != null) {
-                    _qrState.value = QrState.Success(payload, signature)
+                    // Pass all 3 pieces of data
+                    _qrState.value = QrState.Success(payload, signature, publicKey)
                 } else {
                     _qrState.value = QrState.Error("Failed to generate secure signature")
                 }

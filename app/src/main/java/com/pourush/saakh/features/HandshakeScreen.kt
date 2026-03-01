@@ -41,8 +41,8 @@ fun HandshakeScreen(
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
 
-                // Format: DATA:timestamp,hours,wage|SIG:base64string
-                val finalPayload = "DATA:${currentState.payload}|SIG:${currentState.signature}"
+                // NEW FORMAT: DATA:...|SIG:...|PUB:...
+                val finalPayload = "DATA:${currentState.payload}|SIG:${currentState.signature}|PUB:${currentState.publicKey}"
 
                 val qrBitmap = remember(finalPayload) {
                     QrCodeGenerator.generateQrBitmap(finalPayload)

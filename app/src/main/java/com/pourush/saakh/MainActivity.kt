@@ -65,18 +65,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("scanner") {
-                            // Showing a Toast popup using Android context
-                            val context = LocalContext.current
-
                             ScannerScreen(
                                 onQrScanned = { scannedData ->
-                                    // 1. Use Android's native logger
-                                    Log.d("SAAKH_SCANNER", "Successfully read QR: $scannedData")
+                                    // Pass the string to the ViewModel to verify and save
+                                    viewModel.processScannedQrCode(scannedData)
 
-                                    // 2. Show a popup on the phone screen itself
-                                    Toast.makeText(context, "Scanned: $scannedData", Toast.LENGTH_LONG).show()
-
-                                    // 3. Close the camera
+                                    // Pop back to the list screen immediately
                                     navController.popBackStack()
                                 }
                             )
