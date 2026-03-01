@@ -1,36 +1,21 @@
 package com.pourush.saakh.features
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer // ADD THIS
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height // ADD THIS
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkListScreen(
     viewModel: WorkViewModel,
@@ -38,11 +23,10 @@ fun WorkListScreen(
     onEntryClick: (String) -> Unit,
     onScanClick: () -> Unit
 ) {
-    // Collect the StateFlow from the ViewModel
     val entries by viewModel.workEntries.collectAsState()
-    val tofuState by viewModel.showTofuDialog.collectAsState() // 1. COLLECT TOFU STATE
+    val tofuState by viewModel.showTofuDialog.collectAsState()
 
-    // 2. THE TOFU DIALOG UI
+    // --- THE TOFU DIALOG UI ---
     if (tofuState != null) {
         var contractorName by remember { mutableStateOf("") }
 
@@ -64,7 +48,7 @@ fun WorkListScreen(
             confirmButton = {
                 Button(
                     onClick = { viewModel.onNewContractorNamed(contractorName) },
-                    enabled = contractorName.isNotBlank() // Prevent saving an empty name
+                    enabled = contractorName.isNotBlank()
                 ) {
                     Text("Save & Trust")
                 }
@@ -76,18 +60,17 @@ fun WorkListScreen(
             }
         )
     }
+
+    // --- YOUR MAIN UI ---
     Scaffold(
         floatingActionButton = {
-            // 2. WRAP BUTTONS IN A COLUMN
             Column(horizontalAlignment = Alignment.End) {
                 FloatingActionButton(onClick = onScanClick) {
-                    Text("📷") // The Scan Button
+                    Text("📷")
                 }
-
-                Spacer(modifier = Modifier.height(16.dp)) // Adds space between buttons
-
+                Spacer(modifier = Modifier.height(16.dp))
                 FloatingActionButton(onClick = onAddClick) {
-                    Text("+") // Add Button
+                    Text("+")
                 }
             }
         }
@@ -104,34 +87,77 @@ fun WorkListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(entries) { entry ->
-                    // A simple card for each work day
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onEntryClick(entry.id) }
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Wage: ₹${entry.wageRate}", style = MaterialTheme.typography.titleMedium)
-                            Text("Hours: ${entry.hoursWorked}", style = MaterialTheme.typography.bodyMedium)
+                // ADDED KEY: This tells Compose exactly which item is which, preventing animation crashes when deleting.
+                items(entries, key = { it.id }) { entry ->
 
-                            // THE NEW UI LOGIC
-                            if (entry.isVerified) {
-                                Text(
-                                    text = "Verified by: ${entry.contractorName ?: "Unknown"} ✅",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
+                    // --- SWIPE TO DELETE LOGIC ---
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { dismissValue ->
+                            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                                viewModel.deleteEntry(entry) // Call the ViewModel to delete from DB
+                                true
                             } else {
-                                Text(
-                                    text = "Status: Pending ⏳",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
+                                false
                             }
                         }
-                    }
+                    )
+
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        enableDismissFromStartToEnd = false, // Only allow right-to-left swipe
+                        backgroundContent = {
+                            val color by animateColorAsState(
+                                targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
+                                    MaterialTheme.colorScheme.errorContainer
+                                } else {
+                                    Color.Transparent
+                                }, label = "DeleteColorAnimation"
+                            )
+
+                            // The red background and trash icon that appear behind the card
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(color, shape = MaterialTheme.shapes.medium)
+                                    .padding(horizontal = 20.dp),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Entry",
+                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
+                        },
+                        content = {
+                            // Existing card with verification display
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onEntryClick(entry.id) }
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("Wage: ₹${entry.wageRate}", style = MaterialTheme.typography.titleMedium)
+                                    Text("Hours: ${entry.hoursWorked}", style = MaterialTheme.typography.bodyMedium)
+
+                                    if (entry.isVerified) {
+                                        Text(
+                                            text = "Verified by: ${entry.contractorName ?: "Unknown"} ✅",
+                                            color = MaterialTheme.colorScheme.primary,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "Status: Pending ⏳",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
