@@ -64,6 +64,19 @@ dependencies {
 
     implementation("com.google.zxing:core:3.5.3")
 
+    // CameraX Core
+    val camerax_version = "1.5.3"
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
+
+    // Google ML Kit
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+
+    // Accompanist Permissions (Makes asking for Camera permission easy in Compose)
+    implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
