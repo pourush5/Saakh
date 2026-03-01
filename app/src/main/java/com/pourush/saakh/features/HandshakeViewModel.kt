@@ -43,12 +43,14 @@ class HandshakeViewModel @Inject constructor(
         viewModelScope.launch {
             val entry = repository.getWorkEntry(entryId)
             if (entry != null) {
-                val payload = "${entry.date},${entry.hoursWorked},${entry.wageRate}"
+                // Inject the unique ID at the very beginning of the string
+                val payload = "${entry.id},${entry.date},${entry.hoursWorked},${entry.wageRate}"
+
+                // Sign the new 4-part payload
                 val signature = cryptoManager.signData(payload)
-                val publicKey = cryptoManager.getMyPublicKey() // GRAB THE KEY
+                val publicKey = cryptoManager.getMyPublicKey()
 
                 if (signature != null) {
-                    // Pass all 3 pieces of data
                     _qrState.value = QrState.Success(payload, signature, publicKey)
                 } else {
                     _qrState.value = QrState.Error("Failed to generate secure signature")

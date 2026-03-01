@@ -18,6 +18,7 @@ import javax.inject.Inject
 
 // Temporary state to hold data while we wait for the user to type the contractor's name
 data class PendingTofu(
+    val id: String,
     val date: Long,
     val hours: Float,
     val wage: Double,
@@ -64,42 +65,40 @@ class WorkViewModel @Inject constructor(
     fun processScannedQrCode(scannedData: String) {
         viewModelScope.launch {
             try {
-                // 1. Split the string into 3 parts
                 val parts = scannedData.split("|")
                 if (parts.size != 3) {
                     Log.e("SAAKH_ERROR", "Invalid QR format. Expected 3 parts.")
                     return@launch
                 }
 
-                // Extract the pieces dynamically
                 val dataPart = parts.find { it.startsWith("DATA:") }?.removePrefix("DATA:") ?: return@launch
                 val sigPart = parts.find { it.startsWith("SIG:") }?.removePrefix("SIG:") ?: return@launch
                 val pubPart = parts.find { it.startsWith("PUB:") }?.removePrefix("PUB:") ?: return@launch
 
-                // 2. Verify the Math using the SENDER'S Public Key (pubPart)
-                val isValid = cryptoManager.verifySignature(
-                    data = dataPart,
-                    signatureBase64 = sigPart,
-                    publicKeyBase64 = pubPart
-                )
+                val isValid = cryptoManager.verifySignature(dataPart, sigPart, pubPart)
 
                 if (isValid) {
+                    // NEW: Parse 4 items (ID, Date, Hours, Wage)
                     val dataValues = dataPart.split(",")
-                    val date = dataValues[0].toLong()
-                    val hours = dataValues[1].toFloat()
-                    val wage = dataValues[2].toDouble()
+                    if (dataValues.size != 4) {
+                        Log.e("SAAKH_ERROR", "Invalid payload format. Missing ID.")
+                        return@launch
+                    }
 
-                    // 3. TOFU LOGIC: Check if we recognize this Public Key
+                    val entryId = dataValues[0] // Extract the ID
+                    val date = dataValues[1].toLong()
+                    val hours = dataValues[2].toFloat()
+                    val wage = dataValues[3].toDouble()
+
                     val knownContractor = repository.getContractor(pubPart)
 
                     if (knownContractor != null) {
-                        // We know them! Save the entry immediately using their known name.
-                        saveVerifiedEntry(date, hours, wage, sigPart, pubPart, knownContractor.name)
+                        // We know them! Save using the exact ID.
+                        saveVerifiedEntry(entryId, date, hours, wage, sigPart, pubPart, knownContractor.name)
                     } else {
-                        // New Key! Pause and trigger the UI to ask for a name.
-                        _showTofuDialog.value = PendingTofu(date, hours, wage, sigPart, pubPart)
+                        // Unknown key! Pass the ID to the TOFU popup.
+                        _showTofuDialog.value = PendingTofu(entryId, date, hours, wage, sigPart, pubPart)
                     }
-
                 } else {
                     Log.e("SAAKH_SECURITY", "Signature Verification Failed! Data was tampered with.")
                 }
@@ -114,11 +113,10 @@ class WorkViewModel @Inject constructor(
         val pendingData = _showTofuDialog.value ?: return
 
         viewModelScope.launch {
-            // 1. Save the new identity to the Contractor table (Address Book)
             repository.addContractor(Contractor(pendingData.publicKey, contractorName))
 
-            // 2. Save the actual work entry with the new name
             saveVerifiedEntry(
+                pendingData.id, // Pass the ID!
                 pendingData.date,
                 pendingData.hours,
                 pendingData.wage,
@@ -127,7 +125,6 @@ class WorkViewModel @Inject constructor(
                 contractorName
             )
 
-            // 3. Close the dialog
             _showTofuDialog.value = null
         }
     }
@@ -139,19 +136,21 @@ class WorkViewModel @Inject constructor(
 
     // Helper function to keep the code DRY
     private suspend fun saveVerifiedEntry(
+        id: String, // Add ID parameter
         date: Long, hours: Float, wage: Double, sig: String, pubKey: String, contractorName: String
     ) {
         val verifiedEntry = WorkEntry(
+            id = id, // Force Room to use this specific ID (Triggers REPLACE)
             date = date,
             hoursWorked = hours,
             wageRate = wage,
             isVerified = true,
             digitalSignature = sig,
             contractorPublicKey = pubKey,
-            contractorName = contractorName // Ensure this field exists in WorkEntry!
+            contractorName = contractorName
         )
 
         repository.addWorkEntry(verifiedEntry)
-        Log.d("SAAKH_SUCCESS", "Verified entry saved to database!")
+        Log.d("SAAKH_SUCCESS", "Verified entry updated in database!")
     }
 }
