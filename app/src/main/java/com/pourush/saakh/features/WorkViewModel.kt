@@ -62,45 +62,65 @@ class WorkViewModel @Inject constructor(
         }
     }
 
-    fun processScannedQrCode(scannedData: String) {
+    fun processScannedQrCode(
+        scannedData: String,
+        onContractorSigned: (String) -> Unit, // Callback to show QR back to Laborer
+        onLaborerVerified: () -> Unit         // Callback to return to list
+    ) {
         viewModelScope.launch {
             try {
-                val parts = scannedData.split("|")
-                if (parts.size != 3) {
-                    Log.e("SAAKH_ERROR", "Invalid QR format. Expected 3 parts.")
-                    return@launch
-                }
-
-                val dataPart = parts.find { it.startsWith("DATA:") }?.removePrefix("DATA:") ?: return@launch
-                val sigPart = parts.find { it.startsWith("SIG:") }?.removePrefix("SIG:") ?: return@launch
-                val pubPart = parts.find { it.startsWith("PUB:") }?.removePrefix("PUB:") ?: return@launch
-
-                val isValid = cryptoManager.verifySignature(dataPart, sigPart, pubPart)
-
-                if (isValid) {
-                    // NEW: Parse 4 items (ID, Date, Hours, Wage)
+                if (scannedData.startsWith("REQ|")) {
+                    // --- CONTRACTOR SCANNED A REQUEST ---
+                    val dataPart = scannedData.removePrefix("REQ|")
                     val dataValues = dataPart.split(",")
-                    if (dataValues.size != 4) {
-                        Log.e("SAAKH_ERROR", "Invalid payload format. Missing ID.")
-                        return@launch
-                    }
-
-                    val entryId = dataValues[0] // Extract the ID
+                    val entryId = dataValues[0]
                     val date = dataValues[1].toLong()
                     val hours = dataValues[2].toFloat()
                     val wage = dataValues[3].toDouble()
 
-                    val knownContractor = repository.getContractor(pubPart)
+                    // Sign it immediately
+                    val signature = cryptoManager.signData(dataPart) ?: return@launch
+                    val pubKey = cryptoManager.getMyPublicKey()
 
-                    if (knownContractor != null) {
-                        // We know them! Save using the exact ID.
-                        saveVerifiedEntry(entryId, date, hours, wage, sigPart, pubPart, knownContractor.name)
+                    // Save to Contractor's DB as Verified
+                    val verifiedEntry = WorkEntry(
+                        id = entryId, date = date, hoursWorked = hours, wageRate = wage,
+                        isVerified = true, digitalSignature = signature,
+                        contractorPublicKey = pubKey, contractorName = "My Signature"
+                    )
+                    repository.addWorkEntry(verifiedEntry)
+
+                    // Tell UI to navigate to HandshakeScreen to show the signed QR
+                    onContractorSigned(entryId)
+
+                } else if (scannedData.startsWith("RES|")) {
+                    // --- LABORER SCANNED A RESPONSE ---
+                    val parts = scannedData.split("|")
+                    val dataPart = parts[1]
+                    val sigPart = parts[2].removePrefix("SIG:")
+                    val pubPart = parts[3].removePrefix("PUB:")
+
+                    val isValid = cryptoManager.verifySignature(dataPart, sigPart, pubPart)
+
+                    if (isValid) {
+                        val dataValues = dataPart.split(",")
+                        val entryId = dataValues[0]
+                        val date = dataValues[1].toLong()
+                        val hours = dataValues[2].toFloat()
+                        val wage = dataValues[3].toDouble()
+
+                        val knownContractor = repository.getContractor(pubPart)
+
+                        if (knownContractor != null) {
+                            saveVerifiedEntry(entryId, date, hours, wage, sigPart, pubPart, knownContractor.name)
+                            onLaborerVerified() // Close camera, we are done!
+                        } else {
+                            _showTofuDialog.value = PendingTofu(entryId, date, hours, wage, sigPart, pubPart)
+                            onLaborerVerified()
+                        }
                     } else {
-                        // Unknown key! Pass the ID to the TOFU popup.
-                        _showTofuDialog.value = PendingTofu(entryId, date, hours, wage, sigPart, pubPart)
+                        Log.e("SAAKH_SECURITY", "Signature Verification Failed!")
                     }
-                } else {
-                    Log.e("SAAKH_SECURITY", "Signature Verification Failed! Data was tampered with.")
                 }
             } catch (e: Exception) {
                 Log.e("SAAKH_ERROR", "Failed to parse QR code", e)

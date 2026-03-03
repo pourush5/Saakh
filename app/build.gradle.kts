@@ -77,6 +77,8 @@ dependencies {
     // Accompanist Permissions (Makes asking for Camera permission easy in Compose)
     implementation("com.google.accompanist:accompanist-permissions:0.35.0-alpha")
 
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

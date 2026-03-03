@@ -15,7 +15,7 @@ import javax.inject.Inject
 // State class to handle UI loading/success/error cleanly
 sealed class QrState {
     object Loading : QrState()
-    data class Success(val payload: String, val signature: String, val publicKey: String) : QrState() // ADDED PUBLIC KEY
+    data class Success(val qrContent: String) : QrState()
     data class Error(val message: String) : QrState()
 }
 
@@ -43,17 +43,21 @@ class HandshakeViewModel @Inject constructor(
         viewModelScope.launch {
             val entry = repository.getWorkEntry(entryId)
             if (entry != null) {
-                // Inject the unique ID at the very beginning of the string
-                val payload = "${entry.id},${entry.date},${entry.hoursWorked},${entry.wageRate}"
+                val payloadData = "${entry.id},${entry.date},${entry.hoursWorked},${entry.wageRate}"
 
-                // Sign the new 4-part payload
-                val signature = cryptoManager.signData(payload)
-                val publicKey = cryptoManager.getMyPublicKey()
-
-                if (signature != null) {
-                    _qrState.value = QrState.Success(payload, signature, publicKey)
+                if (!entry.isVerified) {
+                    // LABORER SIDE: Unverified. Generate a Request (REQ)
+                    _qrState.value = QrState.Success("REQ|$payloadData")
                 } else {
-                    _qrState.value = QrState.Error("Failed to generate secure signature")
+                    // CONTRACTOR SIDE: Verified. Generate a signed Response (RES)
+                    val signature = entry.digitalSignature ?: cryptoManager.signData(payloadData)
+                    val publicKey = entry.contractorPublicKey ?: cryptoManager.getMyPublicKey()
+
+                    if (signature != null) {
+                        _qrState.value = QrState.Success("RES|$payloadData|SIG:$signature|PUB:$publicKey")
+                    } else {
+                        _qrState.value = QrState.Error("Failed to sign data")
+                    }
                 }
             } else {
                 _qrState.value = QrState.Error("Work entry not found")

@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.pourush.saakh.core.datastore.UserRole
 import com.pourush.saakh.core.utils.LedgerExporter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkListScreen(
     viewModel: WorkViewModel,
+    userRole: UserRole,
     onAddClick: () -> Unit,
     onEntryClick: (String) -> Unit,
     onScanClick: () -> Unit
@@ -37,15 +39,15 @@ fun WorkListScreen(
 
         AlertDialog(
             onDismissRequest = { viewModel.dismissTofuDialog() },
-            title = { Text("New Signature Detected 🛡️") },
+            title = { Text("New Signature Detected (नई डिजिटल पहचान मिली)🛡️ ") },
             text = {
                 Column {
-                    Text("This is a mathematically valid signature, but it's from an unknown device. Who is this contractor?")
+                    Text("This is a valid signature, but it's from an unknown device. Who is this contractor? नयी पहचान । ठेकेदार का नाम? ")
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedTextField(
                         value = contractorName,
                         onValueChange = { contractorName = it },
-                        label = { Text("Enter Contractor Name") },
+                        label = { Text("Enter Contractor Name (ठेकेदार का नाम अंकित करें)") },
                         singleLine = true
                     )
                 }
@@ -55,12 +57,12 @@ fun WorkListScreen(
                     onClick = { viewModel.onNewContractorNamed(contractorName) },
                     enabled = contractorName.isNotBlank()
                 ) {
-                    Text("Save & Trust")
+                    Text("Save & Trust (भरोसा एवं सेव करें)")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissTofuDialog() }) {
-                    Text("Cancel")
+                    Text("Cancel (रद्द करें)")
                 }
             }
         )
@@ -69,34 +71,49 @@ fun WorkListScreen(
     Scaffold(
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
-                FloatingActionButton(
-                    onClick = {
-                        val ledgerText = LedgerExporter.generateShareableText(entries)
-                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, ledgerText)
-                        }
-                        val shareIntent = Intent.createChooser(sendIntent, "Share Ledger via...")
-                        context.startActivity(shareIntent)
-                    }
-                ) {
-                    Text("📤") // Export/Share Icon
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                FloatingActionButton(onClick = onScanClick) {
-                    Text("📷")
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                FloatingActionButton(onClick = onAddClick) {
-                    Text("+")
+                if (userRole == UserRole.LABORER) {
+                    // 1. Laborers now need ALL THREE buttons! (Export, Scan, Add)
+                    FloatingActionButton(
+                        onClick = {
+                            val ledgerText = LedgerExporter.generateShareableText(entries)
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, ledgerText)
+                            }
+                            val shareIntent = Intent.createChooser(sendIntent, "Share Ledger via...(मज़दूरी खाता साझा करें)")
+                            context.startActivity(shareIntent)
+                        }
+                    ) {
+                        Text("📤")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // BRING BACK THE SCANNER FOR THE RETURN TRIP!
+                    FloatingActionButton(onClick = onScanClick) {
+                        Text("📷")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    FloatingActionButton(onClick = onAddClick) {
+                        Text("+")
+                    }
+
+                } else if (userRole == UserRole.CONTRACTOR) {
+                    // 2. Contractors STILL only need the scanner to approve work
+                    FloatingActionButton(onClick = onScanClick) {
+                        Text("📷")
+                    }
                 }
             }
         }
+        ,bottomBar = {A2ZFooter()}
     ) { paddingValues ->
         if (entries.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No work logged yet. Tap + to start.")
+                Text("No work logged yet. Tap + to start. अभी तक कोई काम दर्ज नहीं किया गया है | + दबाएं)")
             }
         } else {
             LazyColumn(
@@ -156,19 +173,19 @@ fun WorkListScreen(
                                     .clickable { onEntryClick(entry.id) }
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Wage: ₹${entry.wageRate}", style = MaterialTheme.typography.titleMedium)
-                                    Text("Hours: ${entry.hoursWorked}", style = MaterialTheme.typography.bodyMedium)
+                                    Text("Wage (मज़दूरी): ₹${entry.wageRate}", style = MaterialTheme.typography.titleMedium)
+                                    Text("Hours (घंटे): ${entry.hoursWorked}", style = MaterialTheme.typography.bodyMedium)
 
                                     if (entry.isVerified) {
                                         Text(
-                                            text = "Verified by: ${entry.contractorName ?: "Unknown"} ✅",
+                                            text = "Verified by (द्वारा सत्यापित): ${entry.contractorName ?: "Unknown"} ✅",
                                             color = MaterialTheme.colorScheme.primary,
                                             style = MaterialTheme.typography.labelLarge,
                                             modifier = Modifier.padding(top = 4.dp)
                                         )
                                     } else {
                                         Text(
-                                            text = "Status: Pending ⏳",
+                                            text = "Status (स्थिति): Pending (बाकी) ⏳",
                                             style = MaterialTheme.typography.labelLarge,
                                             modifier = Modifier.padding(top = 4.dp)
                                         )

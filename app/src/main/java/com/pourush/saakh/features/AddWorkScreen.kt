@@ -36,7 +36,7 @@ fun AddWorkScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Aaj Ka Kaam (Today's Work)",
+            text = "Today's Work. आज का काम |",
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -44,7 +44,7 @@ fun AddWorkScreen(
         OutlinedTextField(
             value = hours,
             onValueChange = { hours = it },
-            label = { Text("Hours Worked (Ghante)") },
+            label = { Text("Hours Worked. कितने घंटे काम किया ?") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
@@ -53,7 +53,7 @@ fun AddWorkScreen(
         OutlinedTextField(
             value = wage,
             onValueChange = { wage = it },
-            label = { Text("Daily Wage (Dihadi)") },
+            label = { Text("Daily Wage. दिहाड़ी (रोज़ की मज़दूरी)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
@@ -70,7 +70,7 @@ fun AddWorkScreen(
                 .fillMaxWidth()
                 .height(56.dp) // Taller button for easier tapping
         ) {
-            Text("SAVE ENTRY")
+            Text("SAVE ENTRY. सेव करें |")
         }
     }
 }

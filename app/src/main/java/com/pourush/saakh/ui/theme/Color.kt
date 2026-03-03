@@ -2,6 +2,8 @@ package com.pourush.saakh.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+val SaakhOrange = Color(0xFFE2B45A)
+val OnSaakhOrange = Color(0xFF1C1B1F)
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)

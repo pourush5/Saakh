@@ -5,6 +5,8 @@ import com.pourush.saakh.core.crypto.SaakhCryptoManager
 import com.pourush.saakh.core.database.ContractorDao
 import com.pourush.saakh.core.database.SaakhDatabase
 import com.pourush.saakh.core.database.WorkDao
+import com.pourush.saakh.core.datastore.UserPreferencesRepository
+import com.pourush.saakh.core.datastore.dataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,5 +45,11 @@ object AppModule {
     @Singleton
     fun provideCryptoManager(): SaakhCryptoManager {
         return SaakhCryptoManager()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserPreferencesRepository(@ApplicationContext context: Context): UserPreferencesRepository {
+        return UserPreferencesRepository(context.dataStore)
     }
 }

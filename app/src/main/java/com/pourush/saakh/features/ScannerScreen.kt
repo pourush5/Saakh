@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -41,10 +42,10 @@ fun ScannerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("We need camera access to scan the Contractor's QR Code.")
+            Text("Camera access required to scan the Contractor's QR Code.\nठेकेदार को QR कोड स्कैन करने हेतु कैमरा अनुमति आवश्यक है ।")
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
-                Text("Grant Permission")
+                Text("Grant Permission (अनुमति दें)")
             }
         }
     }
@@ -53,7 +54,7 @@ fun ScannerScreen(
 @Composable
 private fun CameraPreviewBox(onQrScanned: (String) -> Unit) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     // Use a flag to prevent scanning the same code 100 times a second
     var hasScanned by remember { mutableStateOf(false) }
