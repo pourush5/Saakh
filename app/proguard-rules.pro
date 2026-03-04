@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep Room database models intact
+-keep class com.pourush.saakh.core.database.** { *; }
+
+# Keep Hilt / Dagger generated classes safe
+-keep,allowobfuscation,allowshrinking interface dagger.**
+-keep,allowobfuscation,allowshrinking class dagger.**
+
+# If you used a specific library for QR generation (like ZXing), keep it intact:
+-keep class com.google.zxing.** { *; }
