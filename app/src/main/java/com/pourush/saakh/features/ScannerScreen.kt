@@ -9,12 +9,16 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -23,6 +27,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.pourush.saakh.core.utils.QrCodeAnalyzer
+import com.pourush.saakh.ui.theme.OnSaakhOrange
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -42,10 +47,16 @@ fun ScannerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("Camera access required to scan the Contractor's QR Code.\nठेकेदार को QR कोड स्कैन करने हेतु कैमरा अनुमति आवश्यक है ।")
+            Text("Camera access required to scan the Contractor's QR Code.\nठेकेदार को QR कोड स्कैन करने हेतु कैमरा अनुमति आवश्यक है ।",style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
-                Text("Grant Permission (अनुमति दें)")
+            Button(onClick = { cameraPermissionState.launchPermissionRequest() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = OnSaakhOrange,
+                    contentColor = Color.White
+                )) {
+                Text("Grant Permission (अनुमति दें)",style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center)
             }
         }
     }

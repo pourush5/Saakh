@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pourush.saakh.core.datastore.UserRole
 import com.pourush.saakh.core.utils.QrCodeGenerator
+import com.pourush.saakh.ui.theme.OnSaakhOrange
 
 @Composable
 fun HandshakeScreen(
@@ -47,7 +48,8 @@ fun HandshakeScreen(
                 Text(
                     text = headerText,
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 32.dp)
+                    modifier = Modifier.padding(bottom = 32.dp),
+                    color= OnSaakhOrange
                 )
 
                 val qrBitmap = remember(currentState.qrContent) {

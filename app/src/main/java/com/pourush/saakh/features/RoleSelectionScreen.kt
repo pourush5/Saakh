@@ -9,13 +9,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pourush.saakh.R
 import com.pourush.saakh.core.datastore.UserRole
+import com.pourush.saakh.ui.theme.OnSaakhOrange
+import com.pourush.saakh.ui.theme.SaakhOrange
 
 @Composable
 fun RoleSelectionScreen(
@@ -31,18 +35,20 @@ fun RoleSelectionScreen(
     ) {
         Spacer(modifier = Modifier.weight(2f))
         Image(painter= painterResource(id = R.drawable.saakh_logo),
-            contentDescription = "Kangto_logo",modifier=Modifier.size(200.dp))
+            contentDescription = "Kangto_logo",modifier=Modifier.size(150.dp))
         Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = "Welcome!\nसाख में आपका स्वागत है!",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.headlineMedium,
+            color = OnSaakhOrange,
+            fontFamily = FontFamily.Cursive,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(48.dp))
         Text(
             text = "Choose your role.\nकृपया अपना रोल चुनें",
-            style = MaterialTheme.typography.bodyLarge,
+            fontSize = 20.sp,
+
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(48.dp))
@@ -52,9 +58,13 @@ fun RoleSelectionScreen(
             onClick = { onRoleSelected(UserRole.LABORER) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(64.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = OnSaakhOrange,
+                contentColor = Color.White
+            )
         ) {
-            Text("Laborer\nमैं काम दर्ज कर रहा हूँ - मज़दूर", style = MaterialTheme.typography.titleMedium,
+            Text("Labourer\nमैं काम दर्ज कर रहा हूँ - मज़दूर", style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
         }
@@ -69,7 +79,7 @@ fun RoleSelectionScreen(
                 .height(64.dp)
         ) {
             Text("Contractor\nमैं काम की जाँच कर रहा हूँ - ठेकेदार", style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center, color = OnSaakhOrange
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
