@@ -2,7 +2,7 @@
 
 This project is the **'B' (Bihar)** chapter of the **A2Z Bharat Initiative**, aimed at building software solutions for regional challenges in India.
 
-🔗 **[Download the Latest APK Release Here](https://github.com/pourush5/Saakh/releases/latest)**
+🔗 **[Download the Latest App Here (Play Store) ](https://play.google.com/store/apps/details?id=com.pourush.saakh)**
 
 ---
 
