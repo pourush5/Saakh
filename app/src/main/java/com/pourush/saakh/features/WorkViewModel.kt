@@ -65,7 +65,8 @@ class WorkViewModel @Inject constructor(
     fun processScannedQrCode(
         scannedData: String,
         onContractorSigned: (String) -> Unit, // Callback to show QR back to Laborer
-        onLaborerVerified: () -> Unit         // Callback to return to list
+        onLaborerVerified: () -> Unit,        // Callback to return to list
+        onError: (String) -> Unit = {}        // NEW: Callback for UX error bubbling
     ) {
         viewModelScope.launch {
             try {
@@ -79,7 +80,7 @@ class WorkViewModel @Inject constructor(
                     val wage = dataValues[3].toDouble()
 
                     // Sign it immediately
-                    val signature = cryptoManager.signData(dataPart) ?: return@launch
+                    val signature = cryptoManager.signData(dataPart)
                     val pubKey = cryptoManager.getMyPublicKey()
 
                     // Save to Contractor's DB as Verified
@@ -120,10 +121,12 @@ class WorkViewModel @Inject constructor(
                         }
                     } else {
                         Log.e("SAAKH_SECURITY", "Signature Verification Failed!")
+                        onError("Signature Verification Failed!")
                     }
                 }
             } catch (e: Exception) {
-                Log.e("SAAKH_ERROR", "Failed to parse QR code", e)
+                Log.e("SAAKH_ERROR", "Failed to parse QR code: ${e.message}", e)
+                onError("Scanner Error: ${e.localizedMessage ?: "Failed to process QR"}")
             }
         }
     }

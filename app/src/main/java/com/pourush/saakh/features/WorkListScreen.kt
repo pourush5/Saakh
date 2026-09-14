@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
@@ -24,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.pourush.saakh.core.datastore.UserRole
 import com.pourush.saakh.core.utils.LedgerExporter
 import com.pourush.saakh.ui.theme.OnSaakhOrange
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,10 +66,10 @@ fun WorkListScreen(
                 Button(
                     onClick = { viewModel.onNewContractorNamed(contractorName) },
                     enabled = contractorName.isNotBlank(),
-                            colors = ButtonDefaults.buttonColors(
-                            containerColor = OnSaakhOrange,
-                    contentColor = Color.White
-                )
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = OnSaakhOrange,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text("Save & Trust (भरोसा एवं सेव करें)",style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center)
@@ -143,8 +143,13 @@ fun WorkListScreen(
         )
     }
     Scaffold(
+        modifier = Modifier.fillMaxSize(), // Ensure Scaffold takes full height
         floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End) {
+            // Apply navigationBarsPadding so the FABs don't hide behind system buttons
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.navigationBarsPadding()
+            ) {
 
                 // --- NEW INFO BUTTON FOR EVERYONE ---
                 FloatingActionButton(onClick = { showInfoDialog = true }) {
@@ -152,7 +157,7 @@ fun WorkListScreen(
                 }
 
                 if (userRole == UserRole.LABORER) {
-                    // 1. Laborers now need ALL THREE buttons! (Export, Scan, Add)
+                    Spacer(modifier = Modifier.height(16.dp))
                     FloatingActionButton(
                         onClick = {
                             val ledgerText = LedgerExporter.generateShareableText(entries)
@@ -160,7 +165,7 @@ fun WorkListScreen(
                                 type = "text/plain"
                                 putExtra(Intent.EXTRA_TEXT, ledgerText)
                             }
-                            val shareIntent = Intent.createChooser(sendIntent, "Share Ledger via...(मज़दूरी खाता साझा करें)")
+                            val shareIntent = Intent.createChooser(sendIntent, "Share Ledger via...(मज़दूरी खाता साझा करें)")
                             context.startActivity(shareIntent)
                         }
                     ) {
@@ -181,17 +186,28 @@ fun WorkListScreen(
                     }
 
                 } else if (userRole == UserRole.CONTRACTOR) {
+                    Spacer(modifier = Modifier.height(16.dp))
                     // 2. Contractors STILL only need the scanner to approve work
                     FloatingActionButton(onClick = onScanClick) {
                         Text("📷")
                     }
                 }
             }
+        },
+        bottomBar = {
+            // Wrap custom footer to avoid the bottom system navigation area
+            Box(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)) {
+                A2ZFooter()
+            }
         }
-        ,bottomBar = {A2ZFooter()}
     ) { paddingValues ->
         if (entries.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues), // Vital for top/bottom system bar avoidance
+                contentAlignment = Alignment.Center
+            ) {
                 Text("No work logged yet. Tap + to start.\nअभी तक कोई काम दर्ज नहीं किया गया है | + दबाएं)",
                     color= OnSaakhOrange)
             }
@@ -199,7 +215,8 @@ fun WorkListScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues) // Protects from top status bar and bottomBar overlaps
+                    .consumeWindowInsets(paddingValues), // Tells Compose these insets are handled
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -239,7 +256,7 @@ fun WorkListScreen(
                                 contentAlignment = Alignment.CenterEnd
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Delete,
+                                    imageVector = Icons.Filled.Delete,
                                     contentDescription = "Delete Entry",
                                     tint = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -262,6 +279,13 @@ fun WorkListScreen(
                                             color = MaterialTheme.colorScheme.primary,
                                             style = MaterialTheme.typography.labelLarge,
                                             modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                        Text(
+                                            text = "Key ID: ${com.pourush.saakh.core.utils.CryptoUtils.generateKeyFingerprint(entry.contractorPublicKey)}",
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                            modifier = Modifier.padding(top = 2.dp)
                                         )
                                     } else {
                                         Text(

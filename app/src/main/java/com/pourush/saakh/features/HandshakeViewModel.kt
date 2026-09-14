@@ -50,13 +50,13 @@ class HandshakeViewModel @Inject constructor(
                     _qrState.value = QrState.Success("REQ|$payloadData")
                 } else {
                     // CONTRACTOR SIDE: Verified. Generate a signed Response (RES)
-                    val signature = entry.digitalSignature ?: cryptoManager.signData(payloadData)
-                    val publicKey = entry.contractorPublicKey ?: cryptoManager.getMyPublicKey()
+                    try {
+                        val signature = entry.digitalSignature ?: cryptoManager.signData(payloadData)
+                        val publicKey = entry.contractorPublicKey ?: cryptoManager.getMyPublicKey()
 
-                    if (signature != null) {
                         _qrState.value = QrState.Success("RES|$payloadData|SIG:$signature|PUB:$publicKey")
-                    } else {
-                        _qrState.value = QrState.Error("Failed to sign data")
+                    } catch (e: Exception) {
+                        _qrState.value = QrState.Error("Crypto Error: ${e.localizedMessage ?: "Unknown key error"}")
                     }
                 }
             } else {

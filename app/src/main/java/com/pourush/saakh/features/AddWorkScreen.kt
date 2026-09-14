@@ -55,7 +55,7 @@ fun AddWorkScreen(
         // Hours Input
         OutlinedTextField(
             value = hours,
-            onValueChange = { hours = it },
+            onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) hours = it },
             label = { Text("Hours Worked (कितने घंटे काम किया ?)",color = Purple40,
                 fontSize = 20.sp)},
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -66,8 +66,8 @@ fun AddWorkScreen(
         // Wage Input
         OutlinedTextField(
             value = wage,
-            onValueChange = { wage = it },
-            label = { Text("Daily Wage. दिहाड़ी (रोज़ की मज़दूरी)",color = Purple40,fontSize = 20.sp
+            onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) wage = it },
+            label = { Text("Daily Wage Rs. दिहाड़ी (रोज़ की मज़दूरी)",color = Purple40,fontSize = 20.sp
             ) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),

@@ -9,8 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkDao {
-
-    //Get all entries, sorted by newest first
+    //Get all entries, srted by newest first
     @Query("SELECT * FROM work_entries ORDER BY date DESC")
     fun getAllEntries(): Flow<List<WorkEntry>>
     //Using Flow so the UI updates automatically when data changes!

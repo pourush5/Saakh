@@ -25,7 +25,7 @@ fun A2ZFooter(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background) // Ensures it blends in
             .clickable {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://linktr.ee/pourush"))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://pourushpandey.vercel.app"))
                 context.startActivity(intent)
             }
             .padding(vertical = 16.dp, horizontal = 16.dp),

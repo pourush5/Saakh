@@ -8,9 +8,7 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.Signature
 import java.security.spec.X509EncodedKeySpec
-
 class SaakhCryptoManager {
-
     // The secure vault
     private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
         load(null)
@@ -54,41 +52,31 @@ class SaakhCryptoManager {
     }
 
     // 3. Sign the Data (Contractor uses this to approve hours)
-    fun signData(data: String): String? {
-        return try {
-            val entry = keyStore.getEntry(KEY_ALIAS, null) as KeyStore.PrivateKeyEntry
-            val privateKey: PrivateKey = entry.privateKey
+    fun signData(data: String): String {
+        val entry = keyStore.getEntry(KEY_ALIAS, null) as KeyStore.PrivateKeyEntry
+        val privateKey: PrivateKey = entry.privateKey
 
-            val signature = Signature.getInstance("SHA256withECDSA")
-            signature.initSign(privateKey)
-            signature.update(data.toByteArray(Charsets.UTF_8))
+        val signature = Signature.getInstance("SHA256withECDSA")
+        signature.initSign(privateKey)
+        signature.update(data.toByteArray(Charsets.UTF_8))
 
-            val signatureBytes = signature.sign()
-            Base64.encodeToString(signatureBytes, Base64.NO_WRAP)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+        val signatureBytes = signature.sign()
+        return Base64.encodeToString(signatureBytes, Base64.NO_WRAP)
     }
 
     // 4. Verify the Data (Laborer uses this to verify the Contractor's signature)
     fun verifySignature(data: String, signatureBase64: String, publicKeyBase64: String): Boolean {
-        return try {
-            val signatureBytes = Base64.decode(signatureBase64, Base64.NO_WRAP)
-            val publicKeyBytes = Base64.decode(publicKeyBase64, Base64.NO_WRAP)
+        val signatureBytes = Base64.decode(signatureBase64, Base64.NO_WRAP)
+        val publicKeyBytes = Base64.decode(publicKeyBase64, Base64.NO_WRAP)
 
-            // Reconstruct the Public Key from the Base64 string
-            val keyFactory = KeyFactory.getInstance(KeyProperties.KEY_ALGORITHM_EC)
-            val publicKey = keyFactory.generatePublic(X509EncodedKeySpec(publicKeyBytes))
+        // Reconstruct the Public Key from the Base64 string
+        val keyFactory = KeyFactory.getInstance(KeyProperties.KEY_ALGORITHM_EC)
+        val publicKey = keyFactory.generatePublic(X509EncodedKeySpec(publicKeyBytes))
 
-            val signature = Signature.getInstance("SHA256withECDSA")
-            signature.initVerify(publicKey)
-            signature.update(data.toByteArray(Charsets.UTF_8))
+        val signature = Signature.getInstance("SHA256withECDSA")
+        signature.initVerify(publicKey)
+        signature.update(data.toByteArray(Charsets.UTF_8))
 
-            signature.verify(signatureBytes)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
+        return signature.verify(signatureBytes)
     }
 }

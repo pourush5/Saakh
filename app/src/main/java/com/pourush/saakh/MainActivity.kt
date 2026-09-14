@@ -84,6 +84,7 @@ class MainActivity : ComponentActivity() {
                                     HandshakeScreen(userRole = userRole!!)
                                 }
                                 composable("scanner") {
+                                    val context = androidx.compose.ui.platform.LocalContext.current
                                     ScannerScreen(
                                         onQrScanned = { scannedData ->
                                             viewModel.processScannedQrCode(
@@ -97,6 +98,9 @@ class MainActivity : ComponentActivity() {
                                                 onLaborerVerified = {
                                                     // 2. The Laborer just got verified. Go back to the main list!
                                                     navController.popBackStack()
+                                                },
+                                                onError = { errorMsg ->
+                                                    android.widget.Toast.makeText(context, errorMsg, android.widget.Toast.LENGTH_LONG).show()
                                                 }
                                             )
                                         }

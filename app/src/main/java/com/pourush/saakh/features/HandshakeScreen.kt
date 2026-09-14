@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pourush.saakh.core.datastore.UserRole
@@ -48,10 +49,24 @@ fun HandshakeScreen(
                 Text(
                     text = headerText,
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 32.dp),
-                    color= OnSaakhOrange
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    color= OnSaakhOrange,
+                    textAlign = TextAlign.Center
                 )
+                //Show Contractor their Key ID when signing <---
+                if (currentState.qrContent.startsWith("RES")) {
+               // Extract the public key from the end of the QR payload string
+                    val pubKey = currentState.qrContent.substringAfterLast("PUB:")
+                    val fingerprint = com.pourush.saakh.core.utils.CryptoUtils.generateKeyFingerprint(pubKey)
 
+                    Text(
+                        text = "Your Key ID: $fingerprint",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
                 val qrBitmap = remember(currentState.qrContent) {
                     QrCodeGenerator.generateQrBitmap(currentState.qrContent)
                 }

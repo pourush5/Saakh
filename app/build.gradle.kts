@@ -15,7 +15,7 @@ android {
         applicationId = "com.pourush.saakh"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -23,7 +23,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -43,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.material3)
     val room_version = "2.8.4"
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
@@ -63,7 +65,7 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     implementation("com.google.zxing:core:3.5.3")
-
+    implementation("androidx.compose.material:material-icons-extended")
     // CameraX Core
     val camerax_version = "1.5.3"
     implementation("androidx.camera:camera-core:$camerax_version")
