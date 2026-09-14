@@ -87,7 +87,7 @@ cd Saakh
 
 ---
 
-## 🇮🇳 Initiative & Maintainer
+## Initiative & Maintainer
 
 Saakh is the **Chapter B** project of the [A2Z Bharat](https://github.com/pourush5/A2Z_Bharat) open-source initiative, aimed at building software solutions for regional challenges in India.
 
